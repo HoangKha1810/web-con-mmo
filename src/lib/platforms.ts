@@ -1,6 +1,7 @@
 export type CatalogService = {
   id: number;
   source: 'smm' | 'automxh';
+  provider_id?: number;
   display_name: string;
   category: string;
   platform: string;

@@ -12,6 +12,16 @@ type ServiceCatalogProps = {
   services: CatalogService[];
 };
 
+type CatalogFilterGroup = ServiceIntentMeta & {
+  total: number;
+  minPrice: number;
+  order: number;
+};
+
+function serviceProductOrder(service: CatalogService) {
+  return Number(service.provider_id || service.id || 0);
+}
+
 function IntentIcon({ intentKey }: { intentKey: string }) {
   const icons = {
     like: Heart,
@@ -30,6 +40,7 @@ function IntentIcon({ intentKey }: { intentKey: string }) {
 }
 
 export function ServiceCatalog({ source, services }: ServiceCatalogProps) {
+  const isAutoMxh = source === 'automxh';
   const [platform, setPlatform] = useState('all');
   const [intent, setIntent] = useState('all');
   const [family, setFamily] = useState('all');
@@ -52,33 +63,44 @@ export function ServiceCatalog({ source, services }: ServiceCatalogProps) {
   }, [platform, services]);
 
   const intentGroups = useMemo(() => {
-    const seen = new Map<string, ServiceIntentMeta & { total: number; minPrice: number }>();
+    const seen = new Map<string, CatalogFilterGroup>();
     for (const service of platformServices) {
-      const meta = getServiceIntentMeta(service);
+      const meta = isAutoMxh
+        ? {
+            key: serviceFamily(service),
+            label: cleanServiceCategory(serviceFamily(service)),
+            shortLabel: cleanServiceCategory(serviceFamily(service)),
+            tone: getPlatformMeta(service).tone,
+          }
+        : getServiceIntentMeta(service);
       const current = seen.get(meta.key);
       seen.set(meta.key, {
         ...meta,
         total: (current?.total || 0) + 1,
         minPrice: Math.min(current?.minPrice ?? Number(service.sale_price || 0), Number(service.sale_price || 0)),
+        order: current?.order ?? (isAutoMxh ? serviceProductOrder(service) : seen.size),
       });
     }
     const priority = ['like', 'follow', 'view', 'comment', 'share', 'live', 'member', 'review', 'save', 'other'];
     return Array.from(seen.values()).sort((a, b) => {
+      if (isAutoMxh) return a.order - b.order;
       const ai = priority.indexOf(a.key);
       const bi = priority.indexOf(b.key);
       return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi) || b.total - a.total;
     });
-  }, [platformServices]);
+  }, [isAutoMxh, platformServices]);
 
   const intentServices = useMemo(() => {
     if (intent === 'all') return platformServices;
-    return platformServices.filter((service) => getServiceIntentMeta(service).key === intent);
-  }, [intent, platformServices]);
+    return platformServices.filter((service) => (
+      isAutoMxh ? serviceFamily(service) === intent : getServiceIntentMeta(service).key === intent
+    ));
+  }, [intent, isAutoMxh, platformServices]);
 
   const families = useMemo(() => {
     const seen = new Map<string, { name: string; total: number; minPrice: number }>();
     for (const service of intentServices) {
-      const name = serviceFamily(service);
+      const name = isAutoMxh ? cleanServiceCategory(service.category) : serviceFamily(service);
       const current = seen.get(name);
       seen.set(name, {
         name,
@@ -87,22 +109,25 @@ export function ServiceCatalog({ source, services }: ServiceCatalogProps) {
       });
     }
     return Array.from(seen.values()).sort((a, b) => b.total - a.total || a.name.localeCompare(b.name));
-  }, [intentServices]);
+  }, [intentServices, isAutoMxh]);
 
   const filteredServices = useMemo(() => {
     const normalizedQuery = normalizeCatalogText(query);
     return intentServices.filter((service) => {
-      const matchFamily = family === 'all' || serviceFamily(service) === family;
+      const serviceFamilyKey = isAutoMxh ? cleanServiceCategory(service.category) : serviceFamily(service);
+      const matchFamily = family === 'all' || serviceFamilyKey === family;
       const text = normalizeCatalogText(`${service.display_name} ${service.category} ${service.platform}`);
       const matchQuery = !normalizedQuery || text.includes(normalizedQuery);
       return matchFamily && matchQuery;
     });
-  }, [family, intentServices, query]);
+  }, [family, intentServices, isAutoMxh, query]);
 
   const selected = filteredServices.find((service) => service.id === selectedId) || filteredServices[0] || services[0];
   const activePlatformLabel = platform === 'all' ? 'Tất cả nền tảng' : platforms.find((item) => item.key === platform)?.label || 'Nền tảng đã chọn';
   const activeIntent = intentGroups.find((item) => item.key === intent);
-  const browserTitle = family === 'all' ? (activeIntent?.label || 'Tất cả gói dịch vụ') : cleanServiceCategory(family);
+  const browserTitle = family === 'all'
+    ? (activeIntent?.label || (isAutoMxh ? 'Tất cả gói Auto MXH' : 'Tất cả gói dịch vụ'))
+    : cleanServiceCategory(family);
 
   function choosePlatform(key: string) {
     setPlatform(key);
@@ -127,12 +152,16 @@ export function ServiceCatalog({ source, services }: ServiceCatalogProps) {
       <section className="catalog-toolbar reveal">
         <div>
           <div className="badge green"><Sparkles size={14} /> {source === 'smm' ? 'Bảng dịch vụ SMM' : 'Bảng dịch vụ Auto MXH'}</div>
-          <h2>Chọn nền tảng, chọn nhóm dịch vụ rồi đặt đơn</h2>
+          <h2>{isAutoMxh ? 'Chọn nền tảng, chọn tab dịch vụ rồi đặt đơn' : 'Chọn nền tảng, chọn nhóm dịch vụ rồi đặt đơn'}</h2>
           <p className="muted">Bảng giá được cập nhật theo cấu hình của hệ thống. Mỗi dịch vụ có hạn mức và đơn giá riêng trước khi tạo đơn.</p>
         </div>
         <label className="search-box">
           <Search size={18} />
-          <input value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Tìm dịch vụ, ví dụ: like, follow, live..." />
+          <input
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder={isAutoMxh ? 'Tìm dịch vụ, ví dụ: mở khóa, dame, tick xanh...' : 'Tìm dịch vụ, ví dụ: like, follow, live...'}
+          />
         </label>
       </section>
 
@@ -154,20 +183,24 @@ export function ServiceCatalog({ source, services }: ServiceCatalogProps) {
       <section className="interaction-filter reveal">
         <div className="interaction-filter-head">
           <div>
-            <strong>Loại tương tác</strong>
-            <span>{activePlatformLabel} · chia theo like, follow, view, bình luận...</span>
+            <strong>{isAutoMxh ? 'Tab dịch vụ Auto MXH' : 'Loại tương tác'}</strong>
+            <span>
+              {isAutoMxh
+                ? `${activePlatformLabel} · lọc đúng nhóm dịch vụ nguồn như mở khóa, dame/rip, tick xanh...`
+                : `${activePlatformLabel} · chia theo like, follow, view, bình luận...`}
+            </span>
           </div>
           <span className="badge">{intentServices.length} gói</span>
         </div>
         <div className="interaction-row">
           <button className={`interaction-pill ${intent === 'all' ? 'active' : ''}`} type="button" onClick={() => chooseIntent('all')}>
             <Sparkles size={16} />
-            Tất cả loại
+            {isAutoMxh ? 'Tất cả tab' : 'Tất cả loại'}
             <strong>{platformServices.length}</strong>
           </button>
           {intentGroups.map((item) => (
             <button className={`interaction-pill ${intent === item.key ? 'active' : ''}`} type="button" key={item.key} onClick={() => chooseIntent(item.key)}>
-              <span className={`intent-dot ${item.tone}`}><IntentIcon intentKey={item.key} /></span>
+              <span className={`intent-dot ${item.tone}`}>{isAutoMxh ? <Layers size={16} /> : <IntentIcon intentKey={item.key} />}</span>
               <span>{item.shortLabel}</span>
               <small>Từ {formatMoney(item.minPrice)} đ</small>
               <strong>{item.total}</strong>
@@ -182,7 +215,7 @@ export function ServiceCatalog({ source, services }: ServiceCatalogProps) {
             <Layers size={18} />
             <div>
               <strong>Danh mục dịch vụ</strong>
-              <span>{families.length} nhóm trong loại đã chọn</span>
+              <span>{families.length} {isAutoMxh ? 'danh mục trong tab đã chọn' : 'nhóm trong loại đã chọn'}</span>
             </div>
           </div>
           <button className={`category-item ${family === 'all' ? 'active' : ''}`} type="button" onClick={() => chooseFamily('all')}>
