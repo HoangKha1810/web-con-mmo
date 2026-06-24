@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { CheckCircle2, Copy, ExternalLink, Loader2, QrCode, RefreshCw, Wallet } from 'lucide-react';
 import { ACCOUNT_BALANCE_EVENT } from '@/components/account-widgets';
-import { formatMoney } from '@/lib/utils';
+import { formatDateTimeVi, formatMoney } from '@/lib/utils';
 
 type WalletUser = {
   id: number;
@@ -323,7 +323,7 @@ export function WalletPageClient({ user, initialDeposits }: { user: WalletUser; 
             </div>
             <div>
               <span className="label">Ngày tạo</span>
-              <time>{deposit.created_at}</time>
+              <time>{formatDateTimeVi(deposit.created_at)}</time>
             </div>
           </article>
         ))}
