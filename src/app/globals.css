@@ -997,6 +997,111 @@ button:disabled {
   font-size: 12px;
 }
 
+.pricing-admin {
+  display: grid;
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.pricing-filter-panel {
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: rgba(12, 24, 42, 0.72);
+  padding: 18px;
+  box-shadow: var(--shadow);
+}
+
+.pricing-filter-head {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 16px;
+}
+
+.pricing-filter-head h2 {
+  margin: 12px 0 6px;
+}
+
+.pricing-filter-head p {
+  margin: 0;
+}
+
+.pricing-search {
+  flex: 0 1 460px;
+}
+
+.pricing-filter-section {
+  display: grid;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.source-filter-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.source-filter-button {
+  display: flex;
+  flex: 1 1 180px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: rgba(3, 10, 22, 0.5);
+  color: var(--text);
+  padding: 13px 14px;
+  cursor: pointer;
+  font-weight: 950;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.source-filter-button:hover,
+.source-filter-button.active {
+  transform: translateY(-2px);
+  border-color: rgba(47, 124, 255, 0.45);
+  background: rgba(47, 124, 255, 0.14);
+}
+
+.source-filter-button strong,
+.pricing-summary strong {
+  color: #68f0d0;
+}
+
+.pricing-platform-row .platform-pill {
+  flex: 1 1 220px;
+}
+
+.pricing-summary {
+  margin-top: 16px;
+  border: 1px solid rgba(24, 210, 167, 0.2);
+  border-radius: 14px;
+  background: rgba(24, 210, 167, 0.08);
+  padding: 12px 14px;
+  color: var(--muted);
+  font-weight: 800;
+  line-height: 1.6;
+}
+
+.pricing-table-wrap {
+  overflow-x: auto;
+}
+
+.pricing-row-meta {
+  margin-top: 6px;
+}
+
+.pricing-platform-cell {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 140px;
+  font-weight: 900;
+}
+
 .intent-dot {
   display: inline-grid;
   width: 32px;
@@ -1329,6 +1434,11 @@ button:disabled {
     flex-direction: column;
   }
 
+  .pricing-filter-head {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
   .topbar-balance,
   .search-box {
     width: 100%;
@@ -1430,7 +1540,8 @@ button:disabled {
 :root[data-theme='light'] .form-panel,
 :root[data-theme='light'] .catalog-toolbar,
 :root[data-theme='light'] .category-panel,
-:root[data-theme='light'] .service-browser {
+:root[data-theme='light'] .service-browser,
+:root[data-theme='light'] .pricing-filter-panel {
   background: rgba(248, 252, 255, 0.94);
 }
 
@@ -1447,6 +1558,7 @@ button:disabled {
 :root[data-theme='light'] .platform-pill,
 :root[data-theme='light'] .interaction-filter,
 :root[data-theme='light'] .interaction-pill,
+:root[data-theme='light'] .source-filter-button,
 :root[data-theme='light'] .service-row,
 :root[data-theme='light'] .auth-metrics span,
 :root[data-theme='light'] .account-card,
@@ -1462,6 +1574,10 @@ button:disabled {
 
 :root[data-theme='light'] .account-card {
   background: linear-gradient(180deg, rgba(232, 242, 252, 0.95), rgba(216, 230, 246, 0.95));
+}
+
+:root[data-theme='light'] .pricing-summary {
+  background: rgba(24, 210, 167, 0.12);
 }
 
 :root[data-theme='light'] .nav a {
