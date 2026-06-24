@@ -1394,27 +1394,44 @@ button:disabled {
 /* Profile + theme mode */
 :root[data-theme='light'] {
   color-scheme: light;
-  --bg: #eef4fb;
-  --panel: rgba(255, 255, 255, 0.9);
+  --bg: #e5eef8;
+  --panel: rgba(248, 252, 255, 0.94);
   --panel-strong: rgba(255, 255, 255, 0.98);
-  --panel-soft: rgba(239, 246, 255, 0.78);
-  --line: rgba(22, 47, 86, 0.12);
-  --line-strong: rgba(22, 47, 86, 0.2);
-  --text: #071527;
-  --muted: #5b6f8a;
-  --shadow: 0 22px 70px rgba(15, 23, 42, 0.12);
+  --panel-soft: rgba(229, 239, 251, 0.9);
+  --line: rgba(22, 47, 86, 0.18);
+  --line-strong: rgba(22, 47, 86, 0.28);
+  --text: #061527;
+  --muted: #49617c;
+  --shadow: 0 22px 70px rgba(15, 23, 42, 0.16);
 }
 
 :root[data-theme='light'],
 :root[data-theme='light'] body {
   background:
-    radial-gradient(circle at 12% 0%, rgba(47, 124, 255, 0.16), transparent 34rem),
-    radial-gradient(circle at 85% 10%, rgba(24, 210, 167, 0.14), transparent 32rem),
-    linear-gradient(180deg, #eef4fb 0%, #f8fbff 54%, #eaf1fb 100%);
+    radial-gradient(circle at 12% 0%, rgba(47, 124, 255, 0.2), transparent 34rem),
+    radial-gradient(circle at 86% 12%, rgba(24, 210, 167, 0.18), transparent 32rem),
+    linear-gradient(180deg, #e5eef8 0%, #f0f6fc 48%, #dce8f5 100%);
 }
 
 :root[data-theme='light'] .sidebar {
-  background: rgba(255, 255, 255, 0.76);
+  background: linear-gradient(180deg, rgba(232, 242, 252, 0.96), rgba(218, 232, 247, 0.94));
+}
+
+:root[data-theme='light'] body::before {
+  background-image:
+    linear-gradient(rgba(22, 47, 86, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(22, 47, 86, 0.045) 1px, transparent 1px);
+}
+
+:root[data-theme='light'] .topbar,
+:root[data-theme='light'] .card,
+:root[data-theme='light'] .hero,
+:root[data-theme='light'] .table-wrap,
+:root[data-theme='light'] .form-panel,
+:root[data-theme='light'] .catalog-toolbar,
+:root[data-theme='light'] .category-panel,
+:root[data-theme='light'] .service-browser {
+  background: rgba(248, 252, 255, 0.94);
 }
 
 :root[data-theme='light'] .input,
@@ -1440,7 +1457,27 @@ button:disabled {
 :root[data-theme='light'] .theme-toggle,
 :root[data-theme='light'] .topbar-user,
 :root[data-theme='light'] .sidebar-profile {
-  background: rgba(15, 23, 42, 0.04);
+  background: rgba(226, 238, 250, 0.78);
+}
+
+:root[data-theme='light'] .account-card {
+  background: linear-gradient(180deg, rgba(232, 242, 252, 0.95), rgba(216, 230, 246, 0.95));
+}
+
+:root[data-theme='light'] .nav a {
+  color: #55708f;
+}
+
+:root[data-theme='light'] .nav a:hover,
+:root[data-theme='light'] .nav a.active {
+  color: #0b1b31;
+  background: rgba(47, 124, 255, 0.12);
+}
+
+:root[data-theme='light'] .brand-lockup p,
+:root[data-theme='light'] .muted,
+:root[data-theme='light'] .label {
+  color: #4f6885;
 }
 
 :root[data-theme='light'] .code {

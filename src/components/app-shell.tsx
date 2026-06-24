@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { CreditCard, FileText, Gauge, LogOut, Package, ReceiptText, Settings, Shield, Sparkles, UserRound, Wallet } from 'lucide-react';
+import { CreditCard, FileText, Gauge, Package, ReceiptText, Settings, Shield, Sparkles, UserRound, Wallet } from 'lucide-react';
 import { getCurrentUser } from '@/lib/auth';
-import { formatMoney } from '@/lib/utils';
 import { ThemeToggle } from '@/components/theme-toggle';
+import { SidebarAccount, TopbarAccount } from '@/components/account-widgets';
 
 const nav = [
   { href: '/dashboard', label: 'Tổng quan', icon: Gauge },
@@ -29,8 +29,6 @@ export async function AppShell({ children, admin = false }: { children: React.Re
   if (!user) redirect('/auth/login');
   if (admin && user.role !== 'admin') redirect('/dashboard');
   const items = admin ? adminNav : nav;
-  const displayName = user.full_name || user.username;
-  const avatarInitial = displayName.slice(0, 1).toUpperCase();
 
   return (
     <div className="shell">
@@ -57,33 +55,7 @@ export async function AppShell({ children, admin = false }: { children: React.Re
           })}
         </nav>
 
-        <div className="account-card" style={{ marginTop: 24 }}>
-          <Link className="sidebar-profile" href="/profile">
-            <div className="profile-avatar">
-              {user.avatar_url ? <img src={user.avatar_url} alt={displayName} /> : <span>{avatarInitial}</span>}
-            </div>
-            <div>
-              <div className="muted" style={{ fontSize: 11, fontWeight: 900, textTransform: 'uppercase' }}>Tài khoản</div>
-              <div style={{ marginTop: 6, fontWeight: 900 }}>{displayName}</div>
-              <div className="muted" style={{ fontSize: 12, marginTop: 4 }}>@{user.username}</div>
-            </div>
-          </Link>
-          <div className="sidebar-balance">
-            <span>Balance</span>
-            <strong>{formatMoney(user.balance)} đ</strong>
-          </div>
-          <form action="/api/auth/logout" method="post" style={{ marginTop: 14 }}>
-            <button className="btn secondary" style={{ width: '100%' }} type="submit">
-              <LogOut size={16} />
-              Đăng xuất
-            </button>
-          </form>
-          {user.role === 'admin' ? (
-            <Link className="btn" href={admin ? '/dashboard' : '/admin'} style={{ width: '100%', marginTop: 10 }}>
-              {admin ? 'Về trang khách' : 'Vào admin'}
-            </Link>
-          ) : null}
-        </div>
+        <SidebarAccount initialUser={user} admin={admin} />
       </aside>
       <main className="main">
         <div className="topbar">
@@ -93,15 +65,7 @@ export async function AppShell({ children, admin = false }: { children: React.Re
           </div>
           <div className="topbar-actions">
             <ThemeToggle />
-            <Link className="topbar-user" href="/profile">
-              <div className="profile-avatar sm">
-                {user.avatar_url ? <img src={user.avatar_url} alt={displayName} /> : <span>{avatarInitial}</span>}
-              </div>
-              <div>
-                <span>{displayName}</span>
-                <strong>{formatMoney(user.balance)} đ</strong>
-              </div>
-            </Link>
+            <TopbarAccount initialUser={user} />
           </div>
         </div>
         {children}

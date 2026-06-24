@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import type { FormEvent } from 'react';
 import { CheckCircle2, Copy, ExternalLink, Loader2, QrCode, RefreshCw, Wallet } from 'lucide-react';
+import { ACCOUNT_BALANCE_EVENT } from '@/components/account-widgets';
 import { formatMoney } from '@/lib/utils';
 
 type WalletUser = {
@@ -113,6 +114,16 @@ export function WalletPageClient({ user, initialDeposits }: { user: WalletUser; 
   const [refreshing, setRefreshing] = useState(false);
 
   const pendingDeposit = useMemo(() => deposits.find((deposit) => deposit.status === 'pending') || null, [deposits]);
+
+  function publishBalance(nextBalance: number) {
+    window.dispatchEvent(new CustomEvent(ACCOUNT_BALANCE_EVENT, {
+      detail: {
+        balance: nextBalance,
+        user: { id: user.id, username: user.username, balance: nextBalance },
+      },
+    }));
+  }
+
   async function loadDeposits(silent = false) {
     if (!silent) setRefreshing(true);
     try {
@@ -126,7 +137,9 @@ export function WalletPageClient({ user, initialDeposits }: { user: WalletUser; 
         setDeposits(payload.data);
       }
       if (profileResponse.ok && profile.success && profile.user) {
-        setBalance(Number(profile.user.balance || 0));
+        const nextBalance = Number(profile.user.balance || 0);
+        setBalance(nextBalance);
+        publishBalance(nextBalance);
       }
     } finally {
       if (!silent) setRefreshing(false);
@@ -138,7 +151,7 @@ export function WalletPageClient({ user, initialDeposits }: { user: WalletUser; 
       if (document.visibilityState === 'visible' && deposits.some((deposit) => deposit.status === 'pending')) {
         void loadDeposits(true);
       }
-    }, 12000);
+    }, 5000);
 
     return () => window.clearInterval(timer);
   }, [deposits]);
