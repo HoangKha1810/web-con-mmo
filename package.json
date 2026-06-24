@@ -8,20 +8,16 @@
     "start": "next start",
     "type-check": "tsc --noEmit --incremental false"
   },
+  "engines": {
+    "node": ">=18.18.0"
+  },
   "dependencies": {
-    "@tailwindcss/postcss": "^4.1.5",
     "bcryptjs": "^3.0.3",
-    "clsx": "^2.1.1",
     "lucide-react": "^0.511.0",
     "next": "^15.5.15",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
-    "tailwind-merge": "^3.3.0",
     "zod": "^3.24.4"
-  },
-  "optionalDependencies": {
-    "@tailwindcss/oxide-win32-x64-msvc": "4.3.1",
-    "lightningcss-win32-x64-msvc": "1.32.0"
   },
   "devDependencies": {
     "@types/node": "^22.15.18",

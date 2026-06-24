@@ -1,8 +1,17 @@
-import { clsx, type ClassValue } from 'clsx';
-import { twMerge } from 'tailwind-merge';
+type ClassValue = string | number | false | null | undefined | Record<string, boolean | null | undefined>;
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs));
+  return inputs
+    .flatMap((input) => {
+      if (!input) return [];
+      if (typeof input === 'object') {
+        return Object.entries(input)
+          .filter(([, enabled]) => Boolean(enabled))
+          .map(([className]) => className);
+      }
+      return [String(input)];
+    })
+    .join(' ');
 }
 
 export function formatMoney(value: number) {
