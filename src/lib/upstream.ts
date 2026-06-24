@@ -92,6 +92,10 @@ export async function createSourceDepositCheckout(input: {
   amount: number;
   externalRef: string;
   note?: string;
+  callbackOrigin?: string;
+  successUrl?: string;
+  errorUrl?: string;
+  cancelUrl?: string;
 }) {
   return upstreamFetch('/api/external/smm/deposit/checkout', {
     method: 'POST',
@@ -99,6 +103,10 @@ export async function createSourceDepositCheckout(input: {
       amount: Math.max(0, Math.trunc(toNumber(input.amount, 0))),
       external_ref: input.externalRef,
       note: input.note || 'Nạp tiền từ Hệ Thống Sub',
+      callback_origin: input.callbackOrigin,
+      success_url: input.successUrl,
+      error_url: input.errorUrl,
+      cancel_url: input.cancelUrl,
     },
   });
 }

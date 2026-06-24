@@ -63,10 +63,15 @@ export async function POST(req: Request) {
     `).run(user.id, amount, method, content, note, now, now);
     const depositId = Number(result.lastInsertRowid);
 
+    const origin = new URL(req.url).origin;
     const upstreamCheckout = await createSourceDepositCheckout({
       amount,
       externalRef: content,
       note: `Nap tien hethongsub user=${user.username} deposit=#${depositId}${note ? ` note=${note}` : ''}`,
+      callbackOrigin: origin,
+      successUrl: `${origin}/wallet?payment=success`,
+      errorUrl: `${origin}/wallet?payment=error`,
+      cancelUrl: `${origin}/wallet?payment=cancel`,
     });
     const payment = upstreamCheckout?.payment || {};
     const sourceOrderId = String(upstreamCheckout?.source_order_id || upstreamCheckout?.data?.source_order_id || payment.order_id || '');
