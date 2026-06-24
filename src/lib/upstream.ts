@@ -88,6 +88,97 @@ export async function topUpSourceBalance(input: {
   });
 }
 
+export async function createSourceDepositCheckout(input: {
+  amount: number;
+  externalRef: string;
+  note?: string;
+}) {
+  return upstreamFetch('/api/external/smm/deposit/checkout', {
+    method: 'POST',
+    json: {
+      amount: Math.max(0, Math.trunc(toNumber(input.amount, 0))),
+      external_ref: input.externalRef,
+      note: input.note || 'Nạp tiền từ Hệ Thống Sub',
+    },
+  });
+}
+
+export type UpstreamTransaction = {
+  id?: number;
+  transaction_id?: number | string;
+  type?: string;
+  status?: string;
+  amount?: number;
+  balance_after?: number;
+  wallet_type?: string;
+  content?: string;
+  external_ref?: string;
+  payment_refs?: string[];
+  created_at?: string;
+};
+
+export async function fetchSourceTransactions(input: {
+  externalRef?: string;
+  type?: string;
+  status?: string;
+  limit?: number;
+} = {}) {
+  const qs = new URLSearchParams();
+  if (input.externalRef) qs.set('external_ref', input.externalRef);
+  if (input.type) qs.set('type', input.type);
+  if (input.status) qs.set('status', input.status);
+  qs.set('per_page', String(Math.min(Math.max(Math.trunc(toNumber(input.limit, 20)), 1), 100)));
+
+  const payload = await upstreamFetch(`/api/external/smm/transactions?${qs}`);
+  return Array.isArray(payload.data) ? payload.data as UpstreamTransaction[] : [];
+}
+
+function transactionMatchesReference(transaction: UpstreamTransaction, externalRef: string) {
+  const needle = externalRef.trim().toUpperCase();
+  if (!needle) return false;
+  const values = [
+    transaction.external_ref,
+    transaction.content,
+    ...(Array.isArray(transaction.payment_refs) ? transaction.payment_refs : []),
+  ].map((value) => String(value || '').toUpperCase());
+
+  return values.some((value) => value === needle || value.includes(needle));
+}
+
+export async function verifySourceDeposit(input: {
+  externalRef: string;
+  amount: number;
+}) {
+  const expectedAmount = Math.trunc(toNumber(input.amount, 0));
+  const externalRef = String(input.externalRef || '').trim();
+  if (!externalRef) {
+    throw new Error('Thiếu mã đối soát nguồn API');
+  }
+
+  const transactions = await fetchSourceTransactions({
+    externalRef,
+    type: 'deposit',
+    status: 'success',
+    limit: 20,
+  });
+
+  const matched = transactions.find((transaction) => {
+    const status = String(transaction.status || '').toLowerCase();
+    const type = String(transaction.type || '').toLowerCase();
+    const amount = Math.trunc(toNumber(transaction.amount, 0));
+    return status === 'success' &&
+      type === 'deposit' &&
+      amount >= expectedAmount &&
+      transactionMatchesReference(transaction, externalRef);
+  });
+
+  if (!matched) {
+    throw new Error('Chưa thấy giao dịch đã cộng thành công ở tài khoản nguồn API key');
+  }
+
+  return matched;
+}
+
 export async function fetchSmmServices(search = '') {
   const qs = new URLSearchParams();
   if (search) qs.set('search', search);

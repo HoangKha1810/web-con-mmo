@@ -2,7 +2,8 @@ import { db } from '@/lib/db';
 import { requireUser } from '@/lib/auth';
 import { fail, isFormRequest, ok, readBody } from '@/lib/api-response';
 import { buildSePayReferenceContent } from '@/lib/sepay-codes';
-import { createSePayCheckoutSession } from '@/lib/sepay';
+import { syncPendingDepositsFromUpstream } from '@/lib/deposit-processing';
+import { createSourceDepositCheckout } from '@/lib/upstream';
 import { nowIso, toNumber } from '@/lib/utils';
 
 function escapeHtml(value: string) {
@@ -34,6 +35,7 @@ function sepayAutoSubmitPage(action: string, fields: Record<string, string>) {
 export async function GET() {
   try {
     const user = await requireUser();
+    await syncPendingDepositsFromUpstream({ userId: user.id, limit: 10 }).catch(() => null);
     const data = db.prepare('SELECT * FROM deposits WHERE user_id = ? ORDER BY id DESC LIMIT 100').all(user.id);
     return ok({ data });
   } catch (error) {
@@ -61,27 +63,28 @@ export async function POST(req: Request) {
     `).run(user.id, amount, method, content, note, now, now);
     const depositId = Number(result.lastInsertRowid);
 
-    const origin = new URL(req.url).origin;
-    const payment = await createSePayCheckoutSession({
+    const upstreamCheckout = await createSourceDepositCheckout({
       amount,
-      customerId: String(user.id),
-      description: `Nap tien Hethongsub #${depositId} ${content}`,
-      orderId: content,
-      origin,
+      externalRef: content,
+      note: `Nap tien hethongsub user=${user.username} deposit=#${depositId}${note ? ` note=${note}` : ''}`,
     });
+    const payment = upstreamCheckout?.payment || {};
+    const sourceOrderId = String(upstreamCheckout?.source_order_id || upstreamCheckout?.data?.source_order_id || payment.order_id || '');
+    const sepayOrderId = String(payment.sepay_order_id || '');
 
-    if (!payment.success) {
+    if (!upstreamCheckout?.success || !payment.checkout_url || !payment.fields) {
+      const message = String(upstreamCheckout?.message || 'Web chính không trả về QR SePay hợp lệ');
       db.prepare('UPDATE deposits SET status = ?, admin_note = ?, updated_at = ? WHERE id = ?')
-        .run('failed', payment.message, nowIso(), depositId);
-      return fail(payment.message);
+        .run('failed', message, nowIso(), depositId);
+      return fail(message);
     }
 
-    const storedContent = buildSePayReferenceContent([payment.sepayOrderId, content]);
+    const storedContent = buildSePayReferenceContent([sepayOrderId, sourceOrderId, content]);
     db.prepare('UPDATE deposits SET content = ?, external_ref = ?, updated_at = ? WHERE id = ?')
-      .run(storedContent, payment.sepayOrderId || content, nowIso(), depositId);
+      .run(storedContent, content, nowIso(), depositId);
 
     if (isFormRequest(req)) {
-      return sepayAutoSubmitPage(payment.checkoutUrl, payment.fields);
+      return sepayAutoSubmitPage(payment.checkout_url, payment.fields);
     }
 
     return ok({
@@ -96,11 +99,12 @@ export async function POST(req: Request) {
       },
       payment: {
         order_id: content,
-        sepay_order_id: payment.sepayOrderId,
-        checkout_url: payment.checkoutUrl,
-        checkout_redirect_url: payment.redirectUrl,
+        source_order_id: sourceOrderId,
+        sepay_order_id: sepayOrderId,
+        checkout_url: payment.checkout_url,
+        checkout_redirect_url: payment.checkout_redirect_url,
         fields: payment.fields,
-        ipn_url: payment.config.ipnUrl,
+        ipn_url: payment.ipn_url,
       },
     });
   } catch (error) {

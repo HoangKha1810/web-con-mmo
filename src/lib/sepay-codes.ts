@@ -1,9 +1,9 @@
 import 'server-only';
 
-const SEPAY_REFERENCE_PATTERN = /\b(?:HSSSEP\d+T\d+|PAY[0-9A-Z]+)\b/gi;
+const SEPAY_REFERENCE_PATTERN = /\b(?:HSSSEP\d+T\d+|SEP\d+T\d+|PAY[0-9A-Z]+)\b/gi;
 
 function isSePayReferenceCode(value: string) {
-  return /^(?:HSSSEP\d+T\d+|PAY[0-9A-Z]+)$/i.test(value.trim());
+  return /^(?:HSSSEP\d+T\d+|SEP\d+T\d+|PAY[0-9A-Z]+)$/i.test(value.trim());
 }
 
 function prioritizeSePayCodes(codes: string[]) {
