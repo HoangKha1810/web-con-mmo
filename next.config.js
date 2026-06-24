@@ -4,6 +4,7 @@ const path = require('node:path');
 const nextConfig = {
   reactStrictMode: true,
   outputFileTracingRoot: path.join(__dirname),
+  serverExternalPackages: ['better-sqlite3'],
   experimental: {
     serverActions: {
       allowedOrigins: ['hethongsub.vn', 'localhost:3000', 'localhost:3020'],

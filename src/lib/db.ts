@@ -1,21 +1,47 @@
 import 'server-only';
 
+import { createRequire } from 'node:module';
 import fs from 'node:fs';
 import path from 'node:path';
-import { DatabaseSync } from 'node:sqlite';
 import bcrypt from 'bcryptjs';
 import { nowIso } from '@/lib/utils';
 
 const dataDir = path.join(process.cwd(), 'data');
 const dbPath = path.join(dataDir, 'hethongsub.db');
+const require = createRequire(import.meta.url);
 
 if (!fs.existsSync(dataDir)) {
   fs.mkdirSync(dataDir, { recursive: true });
 }
 
-const globalForDb = globalThis as unknown as { hethongsubDb?: DatabaseSync };
+type RunResult = { changes?: number; lastInsertRowid?: number | bigint };
+type Statement = {
+  get: (...params: unknown[]) => unknown;
+  all: (...params: unknown[]) => unknown[];
+  run: (...params: unknown[]) => RunResult;
+};
+type SyncDb = {
+  exec: (sql: string) => unknown;
+  prepare: (sql: string) => Statement;
+};
 
-export const db = globalForDb.hethongsubDb || new DatabaseSync(dbPath);
+function createDb(filePath: string): SyncDb {
+  try {
+    const { DatabaseSync } = require('node:sqlite') as { DatabaseSync: new (path: string) => SyncDb };
+    return new DatabaseSync(filePath);
+  } catch (error) {
+    const code = (error as NodeJS.ErrnoException).code;
+    if (code !== 'ERR_UNKNOWN_BUILTIN_MODULE' && code !== 'MODULE_NOT_FOUND') {
+      throw error;
+    }
+    const BetterSqlite3 = require('better-sqlite3') as new (path: string) => SyncDb;
+    return new BetterSqlite3(filePath);
+  }
+}
+
+const globalForDb = globalThis as unknown as { hethongsubDb?: SyncDb };
+
+export const db = globalForDb.hethongsubDb || createDb(dbPath);
 
 if (process.env.NODE_ENV !== 'production') {
   globalForDb.hethongsubDb = db;
