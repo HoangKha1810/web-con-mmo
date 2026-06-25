@@ -1,19 +1,14 @@
 import Link from 'next/link';
 import { LockKeyhole, Sparkles } from 'lucide-react';
 import { AuthForm } from '@/components/auth-form';
+import { BrandLogo } from '@/components/brand-logo';
 
 export default function LoginPage() {
   return (
     <div className="auth-page">
       <div className="auth-shell reveal">
         <section className="auth-story">
-          <div className="brand-lockup">
-            <div className="brand-mark">HS</div>
-            <div>
-              <h1>Hệ Thống Sub</h1>
-              <p>Social services marketplace</p>
-            </div>
-          </div>
+          <BrandLogo href="/auth/login" />
           <div className="auth-copy">
             <div className="badge green"><Sparkles size={14} /> Dashboard khách hàng</div>
             <h2>Quản lý đơn SMM và Auto MXH trong một không gian gọn gàng.</h2>

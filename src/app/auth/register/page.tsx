@@ -1,19 +1,14 @@
 import Link from 'next/link';
 import { Sparkles, UserPlus } from 'lucide-react';
 import { AuthForm } from '@/components/auth-form';
+import { BrandLogo } from '@/components/brand-logo';
 
 export default function RegisterPage() {
   return (
     <div className="auth-page">
       <div className="auth-shell reveal">
         <section className="auth-story">
-          <div className="brand-lockup">
-            <div className="brand-mark">HS</div>
-            <div>
-              <h1>Hệ Thống Sub</h1>
-              <p>Social services marketplace</p>
-            </div>
-          </div>
+          <BrandLogo href="/auth/register" />
           <div className="auth-copy">
             <div className="badge green"><Sparkles size={14} /> Tạo tài khoản</div>
             <h2>Bắt đầu đặt dịch vụ chỉ với vài thông tin cơ bản.</h2>

@@ -4,6 +4,7 @@ import { CreditCard, FileText, Gauge, Package, ReceiptText, Settings, Shield, Sp
 import { getCurrentUser } from '@/lib/auth';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SidebarAccount, TopbarAccount } from '@/components/account-widgets';
+import { BrandLogo } from '@/components/brand-logo';
 
 const nav = [
   { href: '/dashboard', label: 'Tổng quan', icon: Gauge },
@@ -33,15 +34,7 @@ export async function AppShell({ children, admin = false }: { children: React.Re
   return (
     <div className="shell">
       <aside className="sidebar">
-        <Link href="/dashboard" style={{ display: 'block' }}>
-          <div className="brand-lockup">
-            <div className="brand-mark">HS</div>
-            <div>
-              <h1>Hệ Thống Sub</h1>
-              <p>Social services marketplace</p>
-            </div>
-          </div>
-        </Link>
+        <BrandLogo href="/dashboard" />
 
         <nav className="nav">
           {items.map((item) => {
