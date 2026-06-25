@@ -7,6 +7,14 @@ import { nowIso } from '@/lib/utils';
 
 export const SESSION_COOKIE = 'hss_session';
 
+export function isAdminRole(role: string) {
+  return role === 'admin';
+}
+
+export function isFundManagerRole(role: string) {
+  return role === 'admin' || role === 'owner';
+}
+
 function makeToken() {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
@@ -54,8 +62,16 @@ export async function requireUser() {
 
 export async function requireAdmin() {
   const user = await requireUser();
-  if (user.role !== 'admin') {
+  if (!isAdminRole(user.role)) {
     throw new Error('Bạn không có quyền admin');
+  }
+  return user;
+}
+
+export async function requireFundManager() {
+  const user = await requireUser();
+  if (!isFundManagerRole(user.role)) {
+    throw new Error('Bạn không có quyền quản lý quỹ');
   }
   return user;
 }

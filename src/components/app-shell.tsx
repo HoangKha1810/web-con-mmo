@@ -1,10 +1,11 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { CreditCard, FileText, Gauge, Package, ReceiptText, Settings, Shield, Sparkles, UserRound, Wallet } from 'lucide-react';
-import { getCurrentUser } from '@/lib/auth';
+import { CreditCard, FileText, Gauge, Landmark, Package, ReceiptText, Settings, Shield, Sparkles, UserRound, Wallet } from 'lucide-react';
+import { getCurrentUser, isAdminRole, isFundManagerRole } from '@/lib/auth';
 import { ThemeToggle } from '@/components/theme-toggle';
 import { SidebarAccount, TopbarAccount } from '@/components/account-widgets';
 import { BrandLogo } from '@/components/brand-logo';
+import { AdminContactBubble } from '@/components/admin-contact-bubble';
 
 const nav = [
   { href: '/dashboard', label: 'Tổng quan', icon: Gauge },
@@ -21,15 +22,29 @@ const adminNav = [
   { href: '/admin/orders', label: 'Quản lý đơn', icon: ReceiptText },
   { href: '/admin/pricing', label: 'Bảng giá bán', icon: CreditCard },
   { href: '/admin/deposits', label: 'Duyệt nạp', icon: Wallet },
+  { href: '/admin/funds', label: 'Quỹ nạp/rút', icon: Landmark },
   { href: '/admin/users', label: 'Thành viên', icon: Shield },
   { href: '/admin/api-docs', label: 'Docs nạp tiền', icon: FileText },
 ];
 
-export async function AppShell({ children, admin = false }: { children: React.ReactNode; admin?: boolean }) {
+const fundManagerNav = [
+  { href: '/admin/funds', label: 'Quỹ nạp/rút', icon: Landmark },
+];
+
+export async function AppShell({
+  children,
+  admin = false,
+  fundManager = false,
+}: {
+  children: React.ReactNode;
+  admin?: boolean;
+  fundManager?: boolean;
+}) {
   const user = await getCurrentUser();
   if (!user) redirect('/auth/login');
-  if (admin && user.role !== 'admin') redirect('/dashboard');
-  const items = admin ? adminNav : nav;
+  if (admin && !isAdminRole(user.role)) redirect('/dashboard');
+  if (fundManager && !isFundManagerRole(user.role)) redirect('/dashboard');
+  const items = admin || (fundManager && isAdminRole(user.role)) ? adminNav : fundManager ? fundManagerNav : nav;
 
   return (
     <div className="shell">
@@ -48,7 +63,7 @@ export async function AppShell({ children, admin = false }: { children: React.Re
           })}
         </nav>
 
-        <SidebarAccount initialUser={user} admin={admin} />
+        <SidebarAccount initialUser={user} admin={admin || fundManager} />
       </aside>
       <main className="main">
         <div className="topbar">
@@ -62,6 +77,7 @@ export async function AppShell({ children, admin = false }: { children: React.Re
           </div>
         </div>
         {children}
+        <AdminContactBubble />
       </main>
     </div>
   );

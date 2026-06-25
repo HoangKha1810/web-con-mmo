@@ -25,6 +25,14 @@ function avatarInitial(user: ShellAccountUser) {
   return accountDisplayName(user).slice(0, 1).toUpperCase();
 }
 
+function isAdminRole(role: string) {
+  return role === 'admin' || role === 'owner';
+}
+
+function adminEntryPath(role: string) {
+  return role === 'owner' ? '/admin/funds' : '/admin';
+}
+
 function applyAccountPayload(current: ShellAccountUser, detail: unknown): ShellAccountUser {
   if (!detail || typeof detail !== 'object') return current;
   const payload = detail as { user?: Partial<ShellAccountUser>; balance?: number };
@@ -136,8 +144,8 @@ export function SidebarAccount({ initialUser, admin = false }: { initialUser: Sh
           Đăng xuất
         </button>
       </form>
-      {user.role === 'admin' ? (
-        <Link className="btn" href={admin ? '/dashboard' : '/admin'} style={{ width: '100%', marginTop: 10 }}>
+      {isAdminRole(user.role) ? (
+        <Link className="btn" href={admin ? '/dashboard' : adminEntryPath(user.role)} style={{ width: '100%', marginTop: 10 }}>
           {admin ? 'Về trang khách' : 'Vào admin'}
         </Link>
       ) : null}

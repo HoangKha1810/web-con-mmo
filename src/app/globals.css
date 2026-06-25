@@ -563,6 +563,88 @@ button:disabled {
   font-size: 12px;
 }
 
+.target-input-wrap {
+  position: relative;
+}
+
+.target-input-wrap .input {
+  padding-right: 208px;
+}
+
+.target-actions {
+  position: absolute;
+  right: 8px;
+  top: 8px;
+  display: flex;
+  gap: 6px;
+}
+
+.mini-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 36px;
+  gap: 6px;
+  border: 1px solid rgba(129, 174, 255, 0.22);
+  border-radius: 12px;
+  background: rgba(129, 174, 255, 0.1);
+  color: var(--text);
+  cursor: pointer;
+  padding: 0 10px;
+  font-size: 11px;
+  font-weight: 950;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.mini-action:hover {
+  border-color: rgba(47, 124, 255, 0.48);
+  background: rgba(47, 124, 255, 0.18);
+  transform: translateY(-1px);
+}
+
+.mini-action.green {
+  border-color: rgba(24, 210, 167, 0.24);
+  background: rgba(24, 210, 167, 0.12);
+  color: #52f0c5;
+}
+
+.mini-action:disabled {
+  cursor: wait;
+  opacity: 0.7;
+  transform: none;
+}
+
+.lookup-note {
+  display: block;
+  margin-top: 10px;
+  border: 1px solid rgba(251, 191, 36, 0.28);
+  border-radius: 14px;
+  background: rgba(251, 191, 36, 0.1);
+  color: #fbbf24;
+  padding: 10px 12px;
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1.5;
+}
+
+.lookup-note.success {
+  border-color: rgba(24, 210, 167, 0.28);
+  background: rgba(24, 210, 167, 0.1);
+  color: #52f0c5;
+}
+
+.lookup-note.warning {
+  border-color: rgba(251, 113, 133, 0.3);
+  background: rgba(251, 113, 133, 0.1);
+  color: #fb7185;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
 .badge {
   gap: 6px;
 }
@@ -669,6 +751,98 @@ button:disabled {
 .deposit-admin-stats small {
   color: var(--muted);
   font-weight: 900;
+}
+
+.fund-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 22px;
+}
+
+.fund-hero-balance {
+  min-width: 250px;
+  border: 1px solid rgba(24, 210, 167, 0.28);
+  border-radius: 20px;
+  padding: 18px;
+  background: rgba(24, 210, 167, 0.09);
+}
+
+.fund-hero-balance span,
+.fund-stat-card small {
+  display: block;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.fund-hero-balance strong {
+  display: block;
+  margin-top: 8px;
+  color: #6ff3d0;
+  font-size: 32px;
+  font-weight: 950;
+}
+
+.fund-stat-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 18px;
+}
+
+.fund-stat-card {
+  align-items: flex-start;
+}
+
+.fund-stat-card strong {
+  font-size: 24px;
+}
+
+.fund-management-grid {
+  display: grid;
+  grid-template-columns: minmax(320px, 0.82fr) minmax(0, 1.18fr);
+  gap: 18px;
+  margin-top: 18px;
+}
+
+.fund-withdraw-table {
+  align-self: start;
+}
+
+.fund-login-note {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 18px;
+  border-color: rgba(47, 124, 255, 0.24);
+  background: rgba(47, 124, 255, 0.08);
+  color: var(--text);
+}
+
+.fund-login-note svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+  color: #6ff3d0;
+}
+
+.fund-login-note strong,
+.fund-login-note span {
+  display: block;
+}
+
+.fund-login-note span {
+  margin-top: 5px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.fund-login-note code {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 2px 6px;
+  background: rgba(255, 255, 255, 0.05);
+  color: var(--text);
 }
 
 .feature-card {
@@ -1453,6 +1627,7 @@ button:disabled {
   .hero-service,
   .dashboard-hero,
   .wallet-grid,
+  .fund-management-grid,
   .catalog-layout {
     grid-template-columns: 1fr;
   }
@@ -1500,6 +1675,19 @@ button:disabled {
   .deposit-admin-stats {
     grid-template-columns: 1fr;
   }
+
+  .fund-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .fund-hero-balance {
+    min-width: 0;
+  }
+
+  .fund-stat-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 640px) {
@@ -1523,6 +1711,35 @@ button:disabled {
   .service-row svg {
     grid-column: 2;
     text-align: left;
+  }
+
+  .target-input-wrap .input {
+    padding-right: 16px;
+  }
+
+  .target-actions {
+    position: static;
+    margin-top: 8px;
+    display: grid;
+    grid-template-columns: 0.8fr 1.2fr;
+  }
+
+  .mini-action {
+    min-height: 40px;
+  }
+
+  .fund-stat-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .contact-bubble {
+    right: 14px;
+    bottom: 14px;
+    padding: 9px;
+  }
+
+  .contact-bubble-copy {
+    display: none;
   }
 
   .wallet-summary,
@@ -1857,6 +2074,57 @@ button:disabled {
   color: #fecdd3;
 }
 
+.contact-bubble {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 60;
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  max-width: calc(100vw - 32px);
+  border: 1px solid rgba(24, 210, 167, 0.32);
+  border-radius: 999px;
+  padding: 10px 14px 10px 10px;
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.96), rgba(24, 210, 167, 0.96));
+  color: white;
+  box-shadow: 0 18px 50px rgba(14, 165, 233, 0.34);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.contact-bubble:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 22px 62px rgba(24, 210, 167, 0.38);
+}
+
+.contact-bubble-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: 999px;
+  background: rgba(3, 10, 22, 0.22);
+}
+
+.contact-bubble-copy {
+  display: grid;
+  gap: 2px;
+}
+
+.contact-bubble-copy strong {
+  font-size: 13px;
+  font-weight: 950;
+}
+
+.contact-bubble-copy small {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  font-weight: 850;
+  opacity: 0.94;
+}
+
 :root[data-theme='light'] .notice.success {
   color: #047857;
 }
@@ -2064,6 +2332,60 @@ button:disabled {
   margin-top: 4px;
   color: var(--muted);
   font-size: 12px;
+}
+
+.admin-users-table {
+  margin-top: 18px;
+  overflow-x: auto;
+}
+
+.admin-users-table .table {
+  min-width: 1280px;
+}
+
+.admin-users-table th,
+.admin-users-table td {
+  vertical-align: top;
+}
+
+.admin-user-cell {
+  min-width: 190px;
+}
+
+.admin-user-form {
+  display: grid;
+  min-width: 260px;
+  gap: 8px;
+}
+
+.admin-user-form .input,
+.admin-user-selects .select,
+.admin-users-table .input {
+  min-height: 44px;
+  border-radius: 13px;
+  font-size: 13px;
+}
+
+.admin-user-selects,
+.admin-user-actions {
+  display: grid;
+  gap: 8px;
+}
+
+.admin-balance-input {
+  min-width: 140px;
+}
+
+.admin-user-actions {
+  min-width: 112px;
+}
+
+.icon-btn {
+  display: inline-grid;
+  width: 44px;
+  min-height: 44px;
+  place-items: center;
+  padding: 0;
 }
 
 @media (max-width: 980px) {

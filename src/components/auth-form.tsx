@@ -12,6 +12,12 @@ function friendlyMessage(message: string, mode: AuthMode) {
   return mode === 'login' ? 'Không thể đăng nhập. Vui lòng kiểm tra lại thông tin.' : 'Không thể tạo tài khoản. Vui lòng thử lại.';
 }
 
+function redirectPath(role?: string) {
+  if (role === 'admin') return '/admin';
+  if (role === 'owner') return '/admin/funds';
+  return '/dashboard';
+}
+
 export function AuthForm({ mode }: { mode: AuthMode }) {
   const [loading, setLoading] = useState(false);
   const [toast, setToast] = useState<{ tone: 'success' | 'danger'; title: string; message: string } | null>(null);
@@ -45,7 +51,7 @@ export function AuthForm({ mode }: { mode: AuthMode }) {
         title: mode === 'login' ? 'Đăng nhập thành công' : 'Tạo tài khoản thành công',
         message: 'Đang chuyển bạn vào dashboard...',
       });
-      window.location.href = payload.user?.role === 'admin' ? '/admin' : '/dashboard';
+      window.location.href = redirectPath(payload.user?.role);
     } catch {
       setToast({
         tone: 'danger',

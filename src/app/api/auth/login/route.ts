@@ -2,6 +2,12 @@ import { db } from '@/lib/db';
 import { createSession, verifyPassword } from '@/lib/auth';
 import { fail, isFormRequest, ok, readBody, redirectResponse } from '@/lib/api-response';
 
+function redirectPath(role: string) {
+  if (role === 'admin') return '/admin';
+  if (role === 'owner') return '/admin/funds';
+  return '/dashboard';
+}
+
 export async function POST(req: Request) {
   const body = await readBody(req);
   const login = String(body.login || body.username || '').trim().toLowerCase();
@@ -23,7 +29,7 @@ export async function POST(req: Request) {
 
   await createSession(user.id);
   if (isFormRequest(req) && !req.headers.get('accept')?.includes('application/json')) {
-    return redirectResponse(req, user.role === 'admin' ? '/admin' : '/dashboard');
+    return redirectResponse(req, redirectPath(user.role));
   }
   return ok({ user: { id: user.id, username: user.username, email: user.email, full_name: user.full_name, avatar_url: user.avatar_url, role: user.role, balance: user.balance } });
 }

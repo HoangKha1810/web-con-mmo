@@ -162,6 +162,14 @@ export function initDb() {
       updated_at TEXT NOT NULL,
       FOREIGN KEY(user_id) REFERENCES users(id) ON DELETE CASCADE
     );
+
+    CREATE TABLE IF NOT EXISTS fund_withdrawals (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      amount INTEGER NOT NULL,
+      note TEXT NOT NULL DEFAULT '',
+      created_by INTEGER NOT NULL DEFAULT 0,
+      created_at TEXT NOT NULL
+    );
   `);
 
   addColumn('orders', 'comments', "TEXT NOT NULL DEFAULT ''");
@@ -183,6 +191,19 @@ export function initDb() {
       INSERT INTO users (username, email, password_hash, role, status, balance, created_at, updated_at)
       VALUES (?, ?, ?, 'admin', 'active', 0, ?, ?)
     `).run(adminUsername, `${adminUsername}@hethongsub.vn`, hash, now, now);
+  }
+
+  const ownerUsername = process.env.OWNER_USERNAME || 'owner';
+  const ownerPassword = process.env.OWNER_PASSWORD || 'hethongsub@2026';
+  const ownerEmail = process.env.OWNER_EMAIL || `${ownerUsername}@hethongsub.vn`;
+  const ownerExisting = db.prepare('SELECT id FROM users WHERE username = ? OR email = ?').get(ownerUsername, ownerEmail);
+  if (!ownerExisting) {
+    const now = nowIso();
+    const hash = bcrypt.hashSync(ownerPassword, 12);
+    db.prepare(`
+      INSERT INTO users (username, email, full_name, password_hash, role, status, balance, created_at, updated_at)
+      VALUES (?, ?, 'Quản lý quỹ', ?, 'owner', 'active', 0, ?, ?)
+    `).run(ownerUsername, ownerEmail, hash, now, now);
   }
 }
 

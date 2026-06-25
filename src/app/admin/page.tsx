@@ -48,6 +48,7 @@ export default async function AdminPage() {
       <div style={{ marginTop: 18, display: 'flex', gap: 12, flexWrap: 'wrap' }}>
         <Link className="btn" href="/admin/pricing">Set giá</Link>
         <Link className="btn secondary" href="/admin/deposits">Duyệt nạp</Link>
+        <Link className="btn secondary" href="/admin/funds">Quỹ nạp/rút</Link>
         <Link className="btn secondary" href="/admin/orders">Quản lý đơn</Link>
       </div>
     </AppShell>
