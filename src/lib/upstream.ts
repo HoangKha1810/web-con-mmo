@@ -1,9 +1,16 @@
 import 'server-only';
 
+import crypto from 'node:crypto';
 import { normalizeBaseUrl, toNumber } from '@/lib/utils';
 
 const upstreamBaseUrl = normalizeBaseUrl(process.env.UPSTREAM_BASE_URL || 'https://trungtammmo.vn');
 const upstreamApiKey = process.env.UPSTREAM_API_KEY || '';
+const upstreamDepositSecret = process.env.UPSTREAM_DEPOSIT_SECRET || process.env.EXTERNAL_API_DEPOSIT_SECRET || '';
+const upstreamDepositSignatureSecret =
+  process.env.UPSTREAM_DEPOSIT_SIGNATURE_SECRET ||
+  process.env.EXTERNAL_API_DEPOSIT_SIGNATURE_SECRET ||
+  '';
+const upstreamDepositUserId = String(process.env.UPSTREAM_DEPOSIT_USER_ID || '').trim();
 
 type FetchOptions = RequestInit & {
   json?: Record<string, unknown>;
@@ -39,6 +46,17 @@ async function upstreamFetch(path: string, options: FetchOptions = {}) {
   }
 
   return payload;
+}
+
+function buildDepositSignature(input: { amount: number; externalRef: string }) {
+  if (!upstreamDepositSignatureSecret || !upstreamDepositUserId) {
+    return '';
+  }
+
+  return crypto
+    .createHmac('sha256', upstreamDepositSignatureSecret)
+    .update(`${input.amount}|${input.externalRef}|${upstreamDepositUserId}`)
+    .digest('hex');
 }
 
 export type UpstreamSmmService = {
@@ -78,13 +96,22 @@ export async function topUpSourceBalance(input: {
   externalRef: string;
   note?: string;
 }) {
+  const amount = Math.max(0, Math.trunc(toNumber(input.amount, 0)));
+  const externalRef = String(input.externalRef || '').trim();
+  const json: Record<string, unknown> = {
+    amount,
+    external_ref: externalRef,
+    note: input.note || 'Nạp tiền từ Hệ Thống Sub',
+  };
+  if (upstreamDepositSecret) {
+    json.deposit_secret = upstreamDepositSecret;
+  }
+
+  const signature = buildDepositSignature({ amount, externalRef });
   return upstreamFetch('/api/external/smm/deposit', {
     method: 'POST',
-    json: {
-      amount: Math.max(0, Math.trunc(toNumber(input.amount, 0))),
-      external_ref: input.externalRef,
-      note: input.note || 'Nạp tiền từ Hệ Thống Sub',
-    },
+    headers: signature ? { 'x-deposit-signature': signature } : undefined,
+    json,
   });
 }
 
