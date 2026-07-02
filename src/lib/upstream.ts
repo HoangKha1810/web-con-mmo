@@ -10,7 +10,8 @@ const upstreamDepositSignatureSecret =
   process.env.UPSTREAM_DEPOSIT_SIGNATURE_SECRET ||
   process.env.EXTERNAL_API_DEPOSIT_SIGNATURE_SECRET ||
   '';
-const upstreamDepositUserId = String(process.env.UPSTREAM_DEPOSIT_USER_ID || '').trim();
+const configuredUpstreamDepositUserId = String(process.env.UPSTREAM_DEPOSIT_USER_ID || '').trim();
+let cachedUpstreamDepositUserId = '';
 
 type FetchOptions = RequestInit & {
   json?: Record<string, unknown>;
@@ -48,14 +49,44 @@ async function upstreamFetch(path: string, options: FetchOptions = {}) {
   return payload;
 }
 
-function buildDepositSignature(input: { amount: number; externalRef: string }) {
-  if (!upstreamDepositSignatureSecret || !upstreamDepositUserId) {
+async function resolveUpstreamDepositUserId() {
+  if (cachedUpstreamDepositUserId) {
+    return cachedUpstreamDepositUserId;
+  }
+
+  try {
+    const payload = await upstreamFetch('/api/external/smm/profile');
+    const userId = String(
+      payload?.data?.user_id ||
+      payload?.user_id ||
+      payload?.data?.id ||
+      ''
+    ).trim();
+    if (userId) {
+      cachedUpstreamDepositUserId = userId;
+      return cachedUpstreamDepositUserId;
+    }
+  } catch {
+    // Fall back to explicit env below so existing VPS configs keep working.
+  }
+
+  cachedUpstreamDepositUserId = configuredUpstreamDepositUserId;
+  return cachedUpstreamDepositUserId;
+}
+
+async function buildDepositSignature(input: { amount: number; externalRef: string }) {
+  if (!upstreamDepositSignatureSecret) {
     return '';
+  }
+
+  const userId = await resolveUpstreamDepositUserId();
+  if (!userId) {
+    throw new Error('Không lấy được user_id nguồn API để ký HMAC nạp tiền');
   }
 
   return crypto
     .createHmac('sha256', upstreamDepositSignatureSecret)
-    .update(`${input.amount}|${input.externalRef}|${upstreamDepositUserId}`)
+    .update(`${input.amount}|${input.externalRef}|${userId}`)
     .digest('hex');
 }
 
@@ -107,7 +138,7 @@ export async function topUpSourceBalance(input: {
     json.deposit_secret = upstreamDepositSecret;
   }
 
-  const signature = buildDepositSignature({ amount, externalRef });
+  const signature = await buildDepositSignature({ amount, externalRef });
   return upstreamFetch('/api/external/smm/deposit', {
     method: 'POST',
     headers: signature ? { 'x-deposit-signature': signature } : undefined,
@@ -168,16 +199,25 @@ export async function fetchSourceTransactions(input: {
   return Array.isArray(payload.data) ? payload.data as UpstreamTransaction[] : [];
 }
 
+function extractExternalRefMarker(value: unknown) {
+  return String(value || '')
+    .split('|')
+    .map((part) => part.trim())
+    .find((part) => /^external_ref=/i.test(part))
+    ?.replace(/^external_ref=/i, '')
+    .trim() || '';
+}
+
 function transactionMatchesReference(transaction: UpstreamTransaction, externalRef: string) {
   const needle = externalRef.trim().toUpperCase();
   if (!needle) return false;
   const values = [
     transaction.external_ref,
-    transaction.content,
+    extractExternalRefMarker(transaction.content),
     ...(Array.isArray(transaction.payment_refs) ? transaction.payment_refs : []),
-  ].map((value) => String(value || '').toUpperCase());
+  ].map((value) => String(value || '').trim().toUpperCase()).filter(Boolean);
 
-  return values.some((value) => value === needle || value.includes(needle));
+  return values.some((value) => value === needle);
 }
 
 export async function verifySourceDeposit(input: {

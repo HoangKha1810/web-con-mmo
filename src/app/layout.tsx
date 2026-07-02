@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { headers } from 'next/headers';
 import './globals.css';
 
 export const dynamic = 'force-dynamic';
@@ -79,11 +80,14 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  const nonce = (await headers()).get('x-nonce') || undefined;
+
   return (
     <html lang="vi" data-theme="dark" suppressHydrationWarning>
       <body>
         <script
+          nonce={nonce}
           dangerouslySetInnerHTML={{
             __html: `try{var t=localStorage.getItem('hss-theme')||(matchMedia('(prefers-color-scheme: light)').matches?'light':'dark');document.documentElement.dataset.theme=t;}catch(e){document.documentElement.dataset.theme='dark';}`,
           }}
